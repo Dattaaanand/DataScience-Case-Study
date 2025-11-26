@@ -12,9 +12,6 @@ def run_step5():
     train_df = pd.read_csv(os.path.join(data_dir, 'train_data.csv'))
     test_df = pd.read_csv(os.path.join(data_dir, 'test_data.csv'))
     
-    # ---------------------------------------------------------
-    # BACKPACK STRATEGY
-    # ---------------------------------------------------------
     # Train
     train_ids = train_df['Patient ID']
     y_train = train_df['Heart Attack Risk']
@@ -28,13 +25,9 @@ def run_step5():
     scaler = StandardScaler()
     
     # 3. Fit on Train, Transform Both
-    # Note: StandardScaler returns numpy arrays, we convert back to DF to keep columns clean
     X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
     X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
     
-    # ---------------------------------------------------------
-    # RE-ATTACH BACKPACK
-    # ---------------------------------------------------------
     X_train_scaled['Patient ID'] = train_ids
     X_train_scaled['Heart Attack Risk'] = y_train
     

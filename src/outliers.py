@@ -20,10 +20,6 @@ def run_step3():
     train_df = pd.read_csv(os.path.join(data_dir, 'train_data.csv'))
     test_df = pd.read_csv(os.path.join(data_dir, 'test_data.csv'))
     
-    # 2. SEPARATE (Backpack Strategy not strictly needed here if we only target specific columns,
-    #    but good practice to identify X_train for calculation)
-    # We only need to calculate bounds on the training features.
-    
     target_cols = ['Cholesterol', 'BMI', 'Triglycerides']
     lower_limits = {}
     upper_limits = {}

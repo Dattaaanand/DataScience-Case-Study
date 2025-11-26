@@ -12,9 +12,6 @@ def run_step4():
     train_df = pd.read_csv(os.path.join(data_dir, 'train_data.csv'))
     test_df = pd.read_csv(os.path.join(data_dir, 'test_data.csv'))
     
-    # ---------------------------------------------------------
-    # BACKPACK STRATEGY
-    # ---------------------------------------------------------
     # Train
     train_ids = train_df['Patient ID']
     y_train = train_df['Heart Attack Risk']
@@ -44,9 +41,6 @@ def run_step4():
     X_test_enc = pd.DataFrame(encoder.transform(X_test[cat_cols]), columns=encoded_cols, index=X_test.index)
     X_test_final = pd.concat([X_test[num_cols], X_test_enc], axis=1)
     
-    # ---------------------------------------------------------
-    # RE-ATTACH BACKPACK
-    # ---------------------------------------------------------
     X_train_final['Patient ID'] = train_ids
     X_train_final['Heart Attack Risk'] = y_train
     

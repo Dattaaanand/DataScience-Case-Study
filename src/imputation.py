@@ -14,9 +14,6 @@ def run_step2():
     train_df = pd.read_csv(os.path.join(data_dir, 'train_data.csv'))
     test_df = pd.read_csv(os.path.join(data_dir, 'test_data.csv'))
     
-    # ---------------------------------------------------------
-    # BACKPACK STRATEGY: Separate Metadata from Data
-    # ---------------------------------------------------------
     # Train: Remove ID and Target
     train_ids = train_df['Patient ID']
     y_train = train_df['Heart Attack Risk']
@@ -42,9 +39,6 @@ def run_step2():
     X_train[categorical_cols] = cat_imputer.fit_transform(X_train[categorical_cols])
     X_test[categorical_cols]  = cat_imputer.transform(X_test[categorical_cols])
     
-    # ---------------------------------------------------------
-    # RE-ATTACH BACKPACK
-    # ---------------------------------------------------------
     # Train: Add ID and Target back
     X_train['Patient ID'] = train_ids
     X_train['Heart Attack Risk'] = y_train
