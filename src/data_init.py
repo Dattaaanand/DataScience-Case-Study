@@ -4,34 +4,46 @@ import os
 from sklearn.model_selection import train_test_split
 
 def run_step1():
-    print("--- STEP 1: Initialization & Corruption ---")
+    print("--- STEP 1: Initialization (With IDs) ---")
     
-    # 1. Load Data
-    filepath = os.path.join('data', 'heart_attack_prediction_dataset.csv')
-    df = pd.read_csv(filepath)
+    # Paths
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    data_dir = os.path.join(project_root, 'data')
     
-    # 2. Basic Feature Engineering (Split BP)
+    # 1. Load
+    raw_path = os.path.join(data_dir, 'heart_attack_prediction_dataset.csv')
+    df = pd.read_csv(raw_path)
+    
+    # Feature Engineering
     df[['BP_Systolic', 'BP_Diastolic']] = df['Blood Pressure'].str.split('/', expand=True).astype(float)
-    df = df.drop(columns=['Patient ID', 'Blood Pressure'])
+    df = df.drop(columns=['Blood Pressure'])
     
-    # 3. Simulate Missing Values (5% corruption)
+    # 2. Corruption
     np.random.seed(42)
-    cols_to_infect = ['Age', 'Cholesterol', 'Sex', 'Diet', 'BP_Systolic']
-    for col in cols_to_infect:
-        mask = np.random.rand(len(df)) < 0.05
+    cols = ['Age', 'Cholesterol', 'Sex', 'Diet', 'BP_Systolic']
+    for col in cols:
+        mask = np.random.rand(len(df)) < 0.10
         df.loc[mask, col] = np.nan
-        
-    print("Missing values injected.")
 
-    # 4. Split into Train and Test
-    # We drop the Target from X, but keep it in the dataframe for saving
+    # 3. SPLIT
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['Heart Attack Risk'])
     
-    # 5. Save intermediate files
-    train_df.to_csv('data/train_step1.csv', index=False)
-    test_df.to_csv('data/test_step1.csv', index=False)
+    # 4. PREPARE FILES
+    test_input = test_df.drop(columns=['Heart Attack Risk'])
     
-    print("Saved: 'data/train_step1.csv' and 'data/test_step1.csv'")
+    test_labels = test_df[['Patient ID', 'Heart Attack Risk']]
+    
+    # 5. SAVE
+    os.makedirs(data_dir, exist_ok=True)
+    train_df.to_csv(os.path.join(data_dir, 'train_data.csv'), index=False)
+    test_input.to_csv(os.path.join(data_dir, 'test_data.csv'), index=False)
+    test_labels.to_csv(os.path.join(data_dir, 'test_labels.csv'), index=False)
+    
+    print("SUCCESS: Data Initialized")
+    print(f" - Train Data: {len(train_df)} rows (Has IDs and Target)")
+    print(f" - Test Data:  {len(test_input)} rows (Has IDs, NO Target)")
+    print(f" - Test Label: {len(test_labels)} rows (Has IDs and Target)")
 
 if __name__ == "__main__":
     run_step1()

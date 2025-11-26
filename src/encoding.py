@@ -1,50 +1,61 @@
 import pandas as pd
+import os
 from sklearn.preprocessing import OneHotEncoder
 
 def run_step4():
     print("\n--- STEP 4: Feature Encoding (OneHot) ---")
     
-    train_df = pd.read_csv('data/train_step3.csv')
-    test_df = pd.read_csv('data/test_step3.csv')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(os.path.dirname(script_dir), 'data')
     
-    # Separate Target
+    # 1. Load Step 3 Data
+    train_df = pd.read_csv(os.path.join(data_dir, 'train_data.csv'))
+    test_df = pd.read_csv(os.path.join(data_dir, 'test_data.csv'))
+    
+    # ---------------------------------------------------------
+    # BACKPACK STRATEGY
+    # ---------------------------------------------------------
+    # Train
+    train_ids = train_df['Patient ID']
     y_train = train_df['Heart Attack Risk']
-    y_test = test_df['Heart Attack Risk']
+    X_train = train_df.drop(columns=['Patient ID', 'Heart Attack Risk'])
     
-    X_train = train_df.drop(columns=['Heart Attack Risk'])
-    X_test = test_df.drop(columns=['Heart Attack Risk'])
+    # Test
+    test_ids = test_df['Patient ID']
+    X_test = test_df.drop(columns=['Patient ID'])
     
-    # Select Categorical columns
+    # 2. Setup Encoder
     cat_cols = X_train.select_dtypes(include=['object']).columns.tolist()
     num_cols = X_train.select_dtypes(exclude=['object']).columns.tolist()
     
-    # 1. Initialize Encoder
-    # sparse_output=False gives us a regular array, not a compressed matrix
     encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
     
-    # 2. Fit on Train
+    # 3. Fit & Transform
     encoder.fit(X_train[cat_cols])
     
-    # 3. Transform
-    # We get numpy arrays back, so we need to recreate DataFrames
+    # Helper to create DataFrames from encoding result
     encoded_cols = encoder.get_feature_names_out(cat_cols)
     
-    X_train_encoded = pd.DataFrame(encoder.transform(X_train[cat_cols]), columns=encoded_cols, index=X_train.index)
-    X_test_encoded = pd.DataFrame(encoder.transform(X_test[cat_cols]), columns=encoded_cols, index=X_test.index)
+    # Train
+    X_train_enc = pd.DataFrame(encoder.transform(X_train[cat_cols]), columns=encoded_cols, index=X_train.index)
+    X_train_final = pd.concat([X_train[num_cols], X_train_enc], axis=1)
     
-    # 4. Merge back with Numeric columns
-    # Reset index to avoid mismatches during concatenation
-    X_train_final = pd.concat([X_train[num_cols].reset_index(drop=True), X_train_encoded.reset_index(drop=True)], axis=1)
-    X_test_final  = pd.concat([X_test[num_cols].reset_index(drop=True), X_test_encoded.reset_index(drop=True)], axis=1)
+    # Test
+    X_test_enc = pd.DataFrame(encoder.transform(X_test[cat_cols]), columns=encoded_cols, index=X_test.index)
+    X_test_final = pd.concat([X_test[num_cols], X_test_enc], axis=1)
     
-    # Add target back for saving
-    X_train_final['Heart Attack Risk'] = y_train.reset_index(drop=True)
-    X_test_final['Heart Attack Risk'] = y_test.reset_index(drop=True)
+    # ---------------------------------------------------------
+    # RE-ATTACH BACKPACK
+    # ---------------------------------------------------------
+    X_train_final['Patient ID'] = train_ids
+    X_train_final['Heart Attack Risk'] = y_train
+    
+    X_test_final['Patient ID'] = test_ids
 
-    # 5. Save
-    X_train_final.to_csv('data/train_step4.csv', index=False)
-    X_test_final.to_csv('data/test_step4.csv', index=False)
-    print("Saved: 'data/train_step4.csv' and 'data/test_step4.csv'")
+    # 4. Save
+    X_train_final.to_csv(os.path.join(data_dir, 'train_data.csv'), index=False)
+    X_test_final.to_csv(os.path.join(data_dir, 'test_data.csv'), index=False)
+    print("Saved: 'train_data.csv' and 'test_data.csv'")
 
 if __name__ == "__main__":
     run_step4()
