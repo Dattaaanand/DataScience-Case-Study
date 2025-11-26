@@ -15,3 +15,10 @@ In your terminal, run `pip install -r requirements.txt`
 4. Encoding
 5. Feature Scaling
 6. Training the model
+
+---
+
+### Steps to Execute
+- MAKE SURE YOU HAVE INSTALLED THE REQUIREMENTS/DEPENDENCIES
+
+To execute, run `python3 main.py` or `python main.py`
