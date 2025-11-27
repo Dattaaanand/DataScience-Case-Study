@@ -18,18 +18,26 @@ def run_baseline():
     test_df = pd.read_csv(os.path.join(data_dir, 'test_data.csv'))
     test_labels = pd.read_csv(os.path.join(data_dir, 'test_labels.csv'))
     
-    # 2. Merge Test Features + Labels (So we can drop NaNs correctly)
+    # 2. Merge Test Features + Labels
     test_full = pd.merge(test_df, test_labels, on='Patient ID')
-    
+
+    # ---- DATA QUALITY REPORT FOR BASELINE ----
+    print("\n--- Missing Values Before Dropping ---")
+    print(train_df.isna().sum())
+
+    print("\n--- Duplicate Rows ---")
+    print(train_df.duplicated().sum())
+
     # 3. NAIVE PREPROCESSING
-    # Strategy: "Just drop the missing rows" (The lazy way)
-    print(f"Original Train Rows: {len(train_df)}")
+    print(f"\nOriginal Train Rows: {len(train_df)}")
     train_df = train_df.dropna()
     test_full = test_full.dropna()
-    print(f"Rows after Dropping NaNs: {len(train_df)} (We lost data!)")
-    
-    # Strategy: "Label Encode" (Turn strings to 1, 2, 3...)
-    # This is often worse than One-Hot but it's simpler
+    print(f"Rows after Dropping NaNs: {len(train_df)} (Information Lost!)")
+
+    print("\nNOTE: Dropping NaNs is a naive strategy that removes useful data.")
+    print("NOTE: Better methods include imputation, which is used in the advanced pipeline.")
+
+    # Label Encoding (Simple but suboptimal)
     for col in train_df.select_dtypes(include='object').columns:
         if col != 'Patient ID':
             train_df[col] = train_df[col].astype('category').cat.codes
@@ -42,13 +50,13 @@ def run_baseline():
     X_test = test_full.drop(columns=['Heart Attack Risk', 'Patient ID'])
     y_test = test_full['Heart Attack Risk']
     
-    # 5. Train Default Model (No class_weight, no threshold tuning)
+    # 5. Train Default Model
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
     
     preds = model.predict(X_test)
     
-    # 6. Save Results
+    # 6. Save Predictions
     results_df = pd.DataFrame({
         'Patient ID': test_full['Patient ID'],
         'Actual': y_test,
@@ -58,13 +66,28 @@ def run_baseline():
     output_path = os.path.join(data_dir, 'baseline_results.csv')
     results_df.to_csv(output_path, index=False)
     
-    # 7. Print Metrics
+    # 7. Full Metric Report
     acc = accuracy_score(y_test, preds)
+    prec = precision_score(y_test, preds)
     rec = recall_score(y_test, preds)
-    print(f"\nBaseline Results:")
-    print(f"Accuracy: {acc:.4f}")
-    print(f"Recall:   {rec:.4f}")
-    print(f"Saved to: {output_path}")
+    f1 = f1_score(y_test, preds)
+
+    print("\nBaseline Results:")
+    print(f"Accuracy:  {acc:.4f}")
+    print(f"Precision: {prec:.4f}")
+    print(f"Recall:    {rec:.4f}")
+    print(f"F1 Score:  {f1:.4f}")
+    print(f"\nSaved to: {output_path}")
+
+    # Save metrics
+    metrics_path = os.path.join(data_dir, 'baseline_metrics.txt')
+    with open(metrics_path, "w") as f:
+        f.write(f"Accuracy: {acc:.4f}\n")
+        f.write(f"Precision: {prec:.4f}\n")
+        f.write(f"Recall: {rec:.4f}\n")
+        f.write(f"F1 Score: {f1:.4f}\n")
+
+    print(f"Metrics saved to: {metrics_path}")
 
 if __name__ == "__main__":
     run_baseline()
