@@ -1,5 +1,5 @@
 .venv
-
+venv/
 __pycache__
 
 final_verification.csv
@@ -8,3 +8,6 @@ test_labels.csv
 train_data.csv
 baseline_results.csv
 final_optimized_results.csv
+
+plots/
+plots_after_preprocessing/
